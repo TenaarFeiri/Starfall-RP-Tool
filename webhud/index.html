@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Starfall RP WebHUD</title>
+  <style>
+    :root {
+      --bg: #13131a;
+      --panel: #202536;
+      --text: #f3f7ff;
+      --accent: #6ea8ff;
+      --muted: #96a2bb;
+      font-family: Arial, sans-serif;
+    }
+    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); }
+    .hud {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      box-sizing: border-box;
+      animation: fadeIn .35s ease-out;
+    }
+    .card {
+      background: linear-gradient(160deg, var(--panel), #161a27);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      padding: 0.75rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .top { display: flex; justify-content: space-between; align-items: center; }
+    .name { font-size: 1.1rem; margin: 0; }
+    .tags { color: var(--muted); font-size: .85rem; }
+    .desc { white-space: pre-wrap; line-height: 1.35; min-height: 5rem; }
+    .btn {
+      border: 0; background: var(--accent); color: #051633; padding: .55rem .85rem;
+      border-radius: 7px; font-weight: 600; cursor: pointer; transition: transform .12s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .footer { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <main class="hud">
+    <section class="card top">
+      <div>
+        <h1 class="name" id="name">Loading…</h1>
+        <div class="tags" id="tags">Preparing WebHUD session</div>
+      </div>
+      <button class="btn" id="refresh">Refresh</button>
+    </section>
+
+    <section class="card">
+      <div class="desc" id="description">Awaiting character data…</div>
+    </section>
+
+    <section class="card footer">
+      <span id="viewport">Viewport: 0×0</span>
+      <span id="status">Disconnected</span>
+    </section>
+  </main>
+
+  <script>
+    const els = {
+      name: document.getElementById('name'),
+      tags: document.getElementById('tags'),
+      description: document.getElementById('description'),
+      status: document.getElementById('status'),
+      viewport: document.getElementById('viewport'),
+      refresh: document.getElementById('refresh')
+    };
+    const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    function scaleToViewport() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const base = Math.max(12, Math.min(18, Math.floor(Math.min(width / 26, height / 20))));
+      document.documentElement.style.fontSize = `${base}px`;
+      els.viewport.textContent = `Viewport: ${width}×${height}`;
+    }
+
+    async function login() {
+      els.status.textContent = 'Connecting…';
+      const params = new URLSearchParams(location.search);
+      const avatar = params.get('avatar_uuid') || '';
+      if (!UUID_PATTERN.test(avatar)) {
+        throw new Error('A valid avatar_uuid query parameter is required.');
+      }
+      const hudObjectUuid = params.get('hud_object_uuid') || '';
+      const titlerObjectUuid = params.get('titler_object_uuid') || '';
+      const response = await fetch('/api/hud/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          avatar_uuid: avatar,
+          attachments: [
+            { slot: 'hud', attached: true, object_uuid: UUID_PATTERN.test(hudObjectUuid) ? hudObjectUuid : '' },
+            { slot: 'titler', attached: true, object_uuid: UUID_PATTERN.test(titlerObjectUuid) ? titlerObjectUuid : '' }
+          ]
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Login failed');
+      return data;
+    }
+
+    async function bootstrap() {
+      try {
+        const data = await login();
+        const c = data.character || {};
+        els.name.textContent = c.name || 'Unnamed Character';
+        els.tags.textContent = [c.gender_tag, c.consent_tag].filter(Boolean).join(' • ') || 'No tags';
+        els.description.textContent = c.description || 'No character description set.';
+        els.status.textContent = 'Connected';
+      } catch (err) {
+        els.status.textContent = 'Error';
+        els.description.textContent = String(err);
+      }
+    }
+
+    window.addEventListener('resize', scaleToViewport);
+    els.refresh.addEventListener('click', bootstrap);
+    scaleToViewport();
+    bootstrap();
+  </script>
+</body>
+</html>
