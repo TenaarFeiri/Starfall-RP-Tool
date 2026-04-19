@@ -10,6 +10,9 @@ use RuntimeException;
 
 final class Autoloader
 {
+    private const NAMESPACE_TOKEN_TYPES = [T_STRING, T_NAME_QUALIFIED, T_NS_SEPARATOR];
+
+    /** @var array<string,string> */
     private array $classMap = [];
 
     public function __construct(
@@ -80,7 +83,7 @@ final class Autoloader
                     if (is_string($next) && ($next === ';' || $next === '{')) {
                         break;
                     }
-                    if (is_array($next) && in_array($next[0], [T_STRING, T_NAME_QUALIFIED, T_NS_SEPARATOR], true)) {
+                    if (is_array($next) && in_array($next[0], self::NAMESPACE_TOKEN_TYPES, true)) {
                         $namespace .= $next[1];
                     }
                 }

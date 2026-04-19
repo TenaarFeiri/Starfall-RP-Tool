@@ -40,16 +40,15 @@ final class AttachmentRepository
     public function markTrashNotAttachedSinceMinutes(int $minutes): int
     {
         $minutes = max(1, $minutes);
+        $cutoff = date('Y-m-d H:i:s', time() - ($minutes * 60));
 
         return $this->database->execute(
-            sprintf(
             'UPDATE temporary_attachments
              SET status = :status, updated_at = NOW()
-             WHERE attached = 0 AND status <> :status AND last_seen_at < (NOW() - INTERVAL %d MINUTE)',
-             $minutes
-            ),
+             WHERE attached = 0 AND status <> :status AND last_seen_at < :cutoff',
             [
                 'status' => 'trash',
+                'cutoff' => $cutoff,
             ]
         );
     }

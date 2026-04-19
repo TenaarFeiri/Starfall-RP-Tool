@@ -7,6 +7,7 @@ namespace Starfall\Application\Controllers;
 use Starfall\Core\Http\Request;
 use Starfall\Core\Http\Response;
 use Starfall\Domain\Attachment\AttachmentService;
+use Starfall\Domain\Auth\HudSessionRepository;
 use Starfall\Domain\Character\CharacterService;
 
 final class AuthController
@@ -14,6 +15,7 @@ final class AuthController
     public function __construct(
         private readonly CharacterService $characterService,
         private readonly AttachmentService $attachmentService,
+        private readonly HudSessionRepository $hudSessionRepository,
         private readonly string $appSecret,
     ) {
     }
@@ -30,7 +32,9 @@ final class AuthController
         $this->attachmentService->cleanupStalePending();
 
         $character = $this->characterService->getOrCreateLastCharacter($avatarUuid);
-        $token = hash_hmac('sha256', $avatarUuid . '|' . microtime(true), $this->appSecret);
+        $nonce = bin2hex(random_bytes(16));
+        $token = hash_hmac('sha256', $avatarUuid . '|' . $nonce, $this->appSecret);
+        $this->hudSessionRepository->create($avatarUuid, hash('sha256', $token));
 
         return Response::json([
             'token' => $token,

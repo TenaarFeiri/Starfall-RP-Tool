@@ -20,6 +20,8 @@ Response includes:
 - `character`
 - `attachment_sync` (contains `should_dispense` and `missing_slots`)
 
+Session token hashes are persisted in `hud_sessions` for server-side tracking.
+
 ## `POST /api/attachments/sync`
 Syncs attachment states and returns current tracking state.
 

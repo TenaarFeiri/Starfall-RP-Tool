@@ -72,6 +72,7 @@
       viewport: document.getElementById('viewport'),
       refresh: document.getElementById('refresh')
     };
+    const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
     function scaleToViewport() {
       const width = window.innerWidth;
@@ -83,15 +84,21 @@
 
     async function login() {
       els.status.textContent = 'Connecting…';
-      const avatar = new URLSearchParams(location.search).get('avatar_uuid') || '00000000-0000-0000-0000-000000000000';
+      const params = new URLSearchParams(location.search);
+      const avatar = params.get('avatar_uuid') || '';
+      if (!UUID_PATTERN.test(avatar)) {
+        throw new Error('A valid avatar_uuid query parameter is required.');
+      }
+      const hudObjectUuid = params.get('hud_object_uuid') || '';
+      const titlerObjectUuid = params.get('titler_object_uuid') || '';
       const response = await fetch('/api/hud/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           avatar_uuid: avatar,
           attachments: [
-            { slot: 'hud', attached: true, object_uuid: 'hud-object' },
-            { slot: 'titler', attached: true, object_uuid: 'titler-object' }
+            { slot: 'hud', attached: true, object_uuid: UUID_PATTERN.test(hudObjectUuid) ? hudObjectUuid : '' },
+            { slot: 'titler', attached: true, object_uuid: UUID_PATTERN.test(titlerObjectUuid) ? titlerObjectUuid : '' }
           ]
         })
       });

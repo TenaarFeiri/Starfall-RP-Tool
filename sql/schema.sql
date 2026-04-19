@@ -74,3 +74,14 @@ CREATE TABLE IF NOT EXISTS environment_zones (
     updated_at DATETIME NOT NULL,
     UNIQUE KEY uq_zone_name (zone_name)
 );
+
+CREATE TABLE IF NOT EXISTS hud_sessions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    avatar_uuid CHAR(36) NOT NULL,
+    token_hash CHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    INDEX idx_hud_session_avatar (avatar_uuid),
+    INDEX idx_hud_session_expires (expires_at)
+);

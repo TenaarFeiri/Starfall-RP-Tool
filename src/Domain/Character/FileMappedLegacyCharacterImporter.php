@@ -20,7 +20,12 @@ final class FileMappedLegacyCharacterImporter implements LegacyCharacterImporter
             return null;
         }
 
-        $raw = json_decode((string)file_get_contents($path), true);
+        $contents = file_get_contents($path);
+        if ($contents === false) {
+            return null;
+        }
+
+        $raw = json_decode($contents, true);
         if (!is_array($raw)) {
             return null;
         }

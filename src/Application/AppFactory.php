@@ -13,6 +13,7 @@ use Starfall\Core\Config;
 use Starfall\Core\Http\Router;
 use Starfall\Domain\Attachment\AttachmentRepository;
 use Starfall\Domain\Attachment\AttachmentService;
+use Starfall\Domain\Auth\HudSessionRepository;
 use Starfall\Domain\Character\CharacterRepository;
 use Starfall\Domain\Character\CharacterService;
 use Starfall\Domain\Character\FileMappedLegacyCharacterImporter;
@@ -37,12 +38,14 @@ final class AppFactory
         );
 
         $attachmentService = new AttachmentService(new AttachmentRepository($database));
+        $hudSessionRepository = new HudSessionRepository($database);
         $objectRegistryRepository = new ObjectRegistryRepository($database);
         $environmentZoneRepository = new EnvironmentZoneRepository($database);
 
         $authController = new AuthController(
             characterService: $characterService,
             attachmentService: $attachmentService,
+            hudSessionRepository: $hudSessionRepository,
             appSecret: (string)$config->get('app')['secret']
         );
         $characterController = new CharacterController($characterService);

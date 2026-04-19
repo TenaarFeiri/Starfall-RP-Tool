@@ -82,7 +82,7 @@ final class Database
         }
 
         foreach ($params as $key => $value) {
-            $param = is_string($key) && $key !== '' && $key[0] !== ':' ? ':' . $key : (string)$key;
+            $param = $this->normalizeParamName($key);
             $statement->bindValue($param, $value, $this->detectPdoType($value));
         }
 
@@ -99,5 +99,14 @@ final class Database
             $value === null => PDO::PARAM_NULL,
             default => PDO::PARAM_STR,
         };
+    }
+
+    private function normalizeParamName(string|int $key): string
+    {
+        if (is_string($key) && $key !== '' && $key[0] !== ':') {
+            return ':' . $key;
+        }
+
+        return (string)$key;
     }
 }

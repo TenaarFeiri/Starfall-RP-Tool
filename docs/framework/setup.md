@@ -12,7 +12,7 @@
    - `/sql/schema.sql`
 2. Configure environment variables:
    - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`
-   - `STARFALL_APP_SECRET`
+   - `STARFALL_APP_SECRET` (**required**)
 3. Serve `/public` as web root.
 
 ## Legacy Import
