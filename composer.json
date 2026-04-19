@@ -1,0 +1,17 @@
+{
+  "name": "starfall/rp-tool",
+  "description": "Starfall roleplay systems framework",
+  "type": "project",
+  "require": {
+    "php": ">=8.3",
+    "ext-pdo": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Starfall\\": "src/"
+    }
+  },
+  "scripts": {
+    "test": "php tests/smoke.php"
+  }
+}
